@@ -46,13 +46,23 @@ def answer_question(question: str, name: str):
 @bot.message_handler(func=lambda msg: True)
 def echo_all(message):
     print(message.text)
-    try:
-        (response) = answer_question(message.text, message.from_user.first_name)
-        bot.send_message(message.chat.id, response)
 
+    metaxu_answer = ""
+    try:
+        response = answer_question(message.text, message.from_user.first_name)
+        bot.send_message(message.chat.id, response)
+        
+        metaxu_answer = response
+
+    except Exception as e:
+        print(e)
+        bot.send_animation(message.chat.id, "https://media.giphy.com/media/Tj4jjaCxXRVSARsUzN/giphy.gif")
+        bot.send_message(message.chat.id, "Le Metaxu joue avec sa règle. Reviens plus tard.")
+
+    try:
         dallePompt = openai.Completion.create(
             engine="text-davinci-003",
-            prompt=f"Convert this text into a one sentence image generation prompt, the image should be in surealist style and portray dreamlike situations that express the text.  \n\n\n\n###\n\n\n text:{response}",
+            prompt=f"Convert this text into a one sentence image generation prompt, the image should be in surealist style and portray dreamlike situations that express the text.  \n\n\n\n###\n\n\n text:{metaxu_answer}",
             max_tokens=300,
             temperature=0.9,
             top_p=1,
@@ -72,16 +82,13 @@ def echo_all(message):
             top_p=1,
             stop=["."])
         
-        # print(image_message)
-
         bot.send_message(message.chat.id, image_message['choices'][0]['text'])
         image_url = create_image['data'][0]['url']
         bot.send_photo(message.chat.id, image_url)
-
+    
     except Exception as e:
         print(e)
-        bot.send_animation(message.chat.id, "https://media.giphy.com/media/Tj4jjaCxXRVSARsUzN/giphy.gif")
-        bot.send_message(message.chat.id, "Le Metaxu joue avec sa règle. Reviens plus tard.")
+
   
 bot.infinity_polling()
 # bot.stop_bot()
